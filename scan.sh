@@ -17,12 +17,22 @@ scraping(){
 
     ##########ASSETFINDER#############
     echo -e "${BOLD}${RED}running assetfinder....${NC}"
-    assetfinder --subs-only $1 -o assetfinder.txt && \
-    cat assetfinder.txt >> "${output_path}subdomains.txt" && \
-    rm assetfinder.txt
-    echo -e "${BOLD}${RED} adding subdomains to subdomain.txt"
-    
-    #########SUBSCRAPER###################
+    assetfinder --subs-only $1 >> "${output_path}subdomains.txt"
+    echo -e "${BOLD}${RED} added subdomains to subdomain.txt"
+
+    ###subfinder##########################
+    echo -e "${BOLD}${BLUE}running subfinder...${NC}"
+    subfinder -d "$1" -o subfinder.txt && cat subfinder.txt >> "${output_path}subdomains.txt" && \
+    rm subfinder.txt
+    echo -e "${BOLD}${BLUE} added subdomains to subdomain.txt"
+
+    ### sublister #########################
+    echo -e "${BOLD}${YELLOW}running sublist3r..."
+    sublist3r -d $1 -t 50 -o sublist3r.txt && cat sublist3r.txt >> "${output_path}subdomains.txt" && \
+    rm sublist3r.txt
+     echo -e "${BOLD}${YELLOW} added subdomains to subdomain.txt"
+
+        #########SUBSCRAPER###################
     echo -e "${BOLD}${YELLOW}running subscraper...${NC}"
     (
         cd /home/kali/subscraper && \
@@ -34,15 +44,4 @@ scraping(){
         echo -e "${BOLD}${YELLOW} adding subdomains to subdomain.txt"
     )
 
-    ###subfinder##########################
-    echo -e "${BOLD}${BLUE}running subfinder...${NC}"
-    subfinder -d "$1" -o subfinder.txt && cat subfinder.txt >> "${output_path}subdomains.txt" && \
-    rm subfinder.txt
-    echo -e "${BOLD}${BLUE} added subdomains to subdomain.txt"
-
-    ### sublister #########################
-    echo -e "${BOLD}${YELLOW}running sublist3r..."
-    sublist3r -d $1 -t 50 -o sublister.txt && cat sublister.txt >> "${output_path}subdomains.txt" && \
-    rm sublist3r.txt
-     echo -e "${BOLD}${YELLOW} added subdomains to subdomain.txt"
 }
