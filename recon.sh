@@ -16,6 +16,7 @@ while getopts ":d:ljsb" opt; do
         d)
             domain=$OPTARG
             directory="${domain}_recon"
+            output_path="/home/kali/reconFramework/${domain}_recon/"
             ;;
         l)
             linked_discovery_flag=true
@@ -49,17 +50,18 @@ mkdir -p "$output_path"
 
 )
 
-
 source "$(dirname "$0")/scan.sh"
+
+
 #function calls
 if [ "$linked_discovery_flag" = true ]; then
-    linked_discovery "$domain" "$directory"
+    linked_discovery "$domain" "$directory" "$output_path"
 fi
 
 if [ "$scraping_flag" = true ]; then
-    scraping "$domain" "$directory"
+    scraping "$domain" "$directory" "$output_path"
 fi
 
 if [ "$brute_forcing_flag" = true ]; then
-    brute_forcing "$domain" "$directory"
+    brute_forcing "$domain" "$directory" "$output_path"
 fi
