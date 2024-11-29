@@ -45,3 +45,13 @@ scraping(){
     )
 
 }
+
+brute_forcing(){
+
+    echo -e "${BOLD}${BLUE}running gobuster in brute forc mode...${NC}"
+    > gobuster.txt
+    gobuster dns -d $1 --wordlist /home/kali/n0kovo_subdomains/n0kovo_subdomains_small.txt --wildcard -t 50 -o gobuster.txt 
+    echo -e "${BOLD}${BLUE}parsing results...${NC}"
+    sed 's/\x1b\[[0-9;]*m//g' gobuster.txt | grep -oP '(?<=Found: ).*?\.[a-zA-Z0-9.-]+\.[a-z]{2,}' > "${output_path}gobuster_parsed.txt"
+
+}

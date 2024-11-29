@@ -9,11 +9,9 @@ NC='\033[0m'
 domain=""
 directory=""
 
-source "$(dirname "$0")/scan.sh"
 
 
-
-while getopts ":d:ljs" opt; do 
+while getopts ":d:ljsb" opt; do 
     case $opt in
         d)
             domain=$OPTARG
@@ -24,6 +22,9 @@ while getopts ":d:ljs" opt; do
             ;;
         s)
             scraping_flag=true
+            ;;
+        b)
+            brute_forcing_flag=true
             ;;
         ?)
             echo "invalid option: -$OPTARG" >&2
@@ -48,12 +49,17 @@ mkdir -p "$output_path"
 
 )
 
-#function calls
 
+source "$(dirname "$0")/scan.sh"
+#function calls
 if [ "$linked_discovery_flag" = true ]; then
     linked_discovery "$domain" "$directory"
 fi
 
 if [ "$scraping_flag" = true ]; then
     scraping "$domain" "$directory"
+fi
+
+if [ "$brute_forcing_flag" = true ]; then
+    brute_forcing "$domain" "$directory"
 fi

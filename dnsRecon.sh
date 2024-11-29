@@ -25,4 +25,4 @@ done < "$file_path"
 echo "DNS lookup results saved to $output_file"
 
 
-sudo masscan -p80,443,53,21,8000-8100 --banners --source-ip 192.168.1.200 -iL $output_file
+sudo masscan -p80,443,53,3306,21,8000-8100 --banners --source-ip 192.168.1.200 -iL $output_file
