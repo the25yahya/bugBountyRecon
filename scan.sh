@@ -36,7 +36,7 @@ scraping(){
         deactivate && \
         cat subscraper.txt >> "${3}subdomains.txt" && \
         rm subscraper.txt
-        echo -e "${BOLD}${YELLOW}[*]adding subdomains to subdomain.txt"
+        echo -e "${BOLD}${YELLOW}[*]adding subdomains to subdomains.txt"
     )
     (
         echo -e "${BOLD}${RED}[*]sorting subdomains and running httprobe ..."
@@ -46,9 +46,9 @@ scraping(){
 }
 
 brute_forcing(){
-    echo -e "${BOLD}${BLUE}[*]running gobuster in brute forc mode...${NC}"
+    echo -e "${BOLD}${BLUE}[*]running gobuster in brute force mode...${NC}"
     > gobuster.txt
-    gobuster dns -d $1 --wordlist /home/kali/n0kovo_subdomains/n0kovo_subdomains_small.txt --wildcard -t 50 -o gobuster.txt 
+    gobuster dns -d $1 --wordlist /home/kali/n0kovo_subdomains/n0kovo_subdomains_large.txt --wildcard -t 50 -o gobuster.txt 
     echo -e "${BOLD}${BLUE}[*]parsing results...${NC}"
     sed 's/\x1b\[[0-9;]*m//g' gobuster.txt | grep -oP '(?<=Found: ).*?\.[a-zA-Z0-9.-]+\.[a-z]{2,}' > "${3}gobuster_parsed.txt"
 }
