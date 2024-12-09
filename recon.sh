@@ -8,7 +8,17 @@ NC='\033[0m'
 
 domain=""
 directory=""
-
+interesting_keywords=(
+    "admin" "test" "testing" "dev" "staging" "beta" "portal" "secure"
+    "api" "backend" "internal" "auth" "login" "signup" "register" 
+    "dashboard" "manage" "management" "upload" "files" "content"
+    "system" "debug" "monitoring" "server" "webmail" "mail" "smtp"
+    "ftp" "sftp" "git" "repo" "docs" "documentation" "config" "settings"
+    "root" "superuser" "data" "backup" "restore" "sandbox" "vulnerable"
+    "legacy" "old" "archive" "private" "adminpanel" "control" "payment"
+    "billing" "invoice" "crm" "erp" "sso" "oauth" "support" "helpdesk"
+    "analytics" "reporting" "report" "status" "health" "check"
+)
 
 
 while getopts ":d:ljsbP" opt; do 
@@ -58,11 +68,39 @@ fi
 
 if [ "$scraping_flag" = true ]; then
     scraping "$domain" "$directory" "$output_path"
+    # Extract interesting URLs from site URLs
+    echo -e "${BOLD}${BLUE}[*] Extracting interesting subdomains from site URLs...${NC}"
+    while IFS= read -r url; do
+        for keyword in "${interesting_keywords[@]}"; do
+            # Check if the URL contains an interesting keyword
+            if [[ "$url" == *"$keyword"* ]]; then
+                # Append the URL to the output file
+                echo "$url" >> "${output_path}interesting.txt"
+                break
+            fi
+        done
+    done < "${output_path}actualSites.txt"
+
+    # Extract interesting subdomains from unique subdomains
+    echo -e "${BOLD}${BLUE}[*] Extracting interesting subdomains from unique subdomains...${NC}"
+    while IFS= read -r subdomain; do
+        for keyword in "${interesting_keywords[@]}"; do
+            # Check if the subdomain contains an interesting keyword
+            if [[ "$subdomain" == *"$keyword"* ]]; then
+                # Append the subdomain to the output file
+                echo "$subdomain" >> "${output_path}interestingSubs.txt"
+                break
+            fi
+        done
+    done < "${output_path}uniqueSubdomains.txt"
+
+    echo -e "${BOLD}${BLUE}[*] Extraction complete.${NC}"
 fi
 
 if [ "$brute_forcing_flag" = true ]; then
     brute_forcing "$domain" "$directory" "$output_path"
 fi
+
 
 if [ "$port_scanning_flag" = true ]; then
     file_path="${output_path}uniqueSubdomains.txt"
@@ -74,16 +112,24 @@ if [ "$port_scanning_flag" = true ]; then
         exit 1
     fi
 
-    echo -e "${BOLD}${RED}[*]Finding subdomains IP Adresses...${NC}"
-    while read domain; do
+    echo -e "${BOLD}${RED}[*] Finding subdomains' IP addresses...${NC}"
+
+    # Use a temporary file to store intermediate results
+    temp_file=$(mktemp)
+
+    while read -r domain; do
         # Error handling in case 'dig' fails
         ip=$(dig +short A "$domain" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')
         if [ ! -z "$ip" ]; then
-            echo "$ip" >> "$output_file"
+            echo "$ip" >> "$temp_file"
         fi
     done < "$file_path"
 
-    echo -e "${BOLD}${BLUE}[*]IP addresses saved to ${output_file}...${NC}"
+    # Sort and remove duplicates before saving the results
+    sort -u "$temp_file" > "$output_file"
+    rm "$temp_file"  # Clean up the temporary file
+
+    echo -e "${BOLD}${BLUE}[*] IP addresses saved to ${output_file}...${NC}"
     masscan_output="${output_path}masscan_results.txt"
     nmap_output="${output_path}nmap_results"
     brutespray_output="${output_path}brutespray_results.txt"
@@ -112,7 +158,7 @@ if [ "$port_scanning_flag" = true ]; then
 
     ###### Nmap
     echo -e "${BOLD}${RED}[*]Running nmap for detailed scanning...${NC}"
-    sudo nmap -Pn -sV -iL "${output_path}cleaned_masscan_results.txt" -p22,3306,21,1433,5432,445,27017,1521,3389 -oG "$nmap_output"
+    sudo nmap -Pn -sV -iL "${output_path}cleaned_masscan_results.txt" -p22,3306,21,1433,5432,445,27017,1521,3389 -oG "$nmap_output.gnmap"
 
     # Check if nmap ran successfully
     if [ $? -ne 0 ]; then
@@ -124,7 +170,9 @@ if [ "$port_scanning_flag" = true ]; then
 
     ##### Brutespray
     echo -e "${BOLD}${YELLOW}[*]Running brutespray to brute-force services...${NC}"
-    brutespray -f "${output_path}nmap_results.gnmap" -u SecLists/Usernames/top-usernames-shortlist.txt -p /usr/share/wordlists/nmap.lst -t 5 -o "$brutespray_output"
+    brutespray -f "${output_path}nmap_results.gnmap" -u /home/kali/SecLists/Usernames/top-usernames-shortlist.txt -p /home/kali/SecLists/Passwords/Common-Credentials/top-20-common-SSH-passwords.txt -t 5 -o "$brutespray_output"
+    brutespray -f "${output_path}nmap_results.gnmap" -u /home/kali/SecLists/Usernames/top-usernames-shortlist.txt -p /home/kali/SecLists/Passwords/Common-Credentials/worst-passwords-2017-top100-slashdata.txt -t 5 -o "${brutespray_output}_2"
+    brutespray -f "${output_path}nmap_results.gnmap" -u /home/kali/SecLists/Usernames/top-usernames-shortlist.txt -p /home/kali/SecLists/Passwords/Common-Credentials/best110.txt -t 5 -o "${brutespray_output}_3"
 
     # Check if brutespray ran successfully
     if [ $? -ne 0 ]; then

@@ -28,7 +28,7 @@ scraping(){
     echo -e "${BOLD}${YELLOW}[*]added subdomains to subdomain.txt"
 
     #########SUBSCRAPER###################
-    echo -e "${BOLD}${YELLOW}r[*]unning subscraper...${NC}"
+    echo -e "${BOLD}${YELLOW}[*]running subscraper...${NC}"
     (
         cd /home/kali/subscraper && \
         source env/bin/activate
@@ -39,9 +39,19 @@ scraping(){
         echo -e "${BOLD}${YELLOW}[*]adding subdomains to subdomains.txt"
     )
     (
-        echo -e "${BOLD}${RED}[*]sorting subdomains and running httprobe ..."
-        cd $3 && sort -u subdomains.txt > uniqueSubdomains.txt && \
+        echo -e "${BOLD}${RED}[*]sorting subdomains and running httprobe...${NC}"
+        cd "$3" 
+        # Sort and deduplicate subdomains
+        sort -u subdomains.txt > uniqueSubdomains.txt
+        
+        # Use httprobe to find live sites
         cat "${3}uniqueSubdomains.txt" | httprobe -c 80 --prefer-https > actualSites.txt 
+
+        # Identify non-live sites
+        echo -e "${BOLD}${BLUE}[*]Identifying non-live subdomains...${NC}"
+        comm -23 <(sort uniqueSubdomains.txt) <(awk -F[/:] '{print $4}' actualSites.txt | sort) > otherSubs.txt
+
+        echo -e "${BOLD}${GREEN}[*]Non-live subdomains saved to otherSubs.txt${NC}"
     )
 }
 
