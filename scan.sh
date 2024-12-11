@@ -1,11 +1,7 @@
 #! /bin/bash
 
-linked_discovery(){
+linked_discovery_and_spidering(){
     echo -e "${BOLD}${GREEN}[*]running hakrawler..."
-    echo https://$1 | hakrawler -subs > hakrawler.txt 
-    echo -e "${BOLD}${GREEN}[*]got results of hakrawler..."
-    echo -e "${BOLD}${GREEN}[*]appending results to site_urls.txt"
-    cat hakrawler.txt >> "${output_path}site_urls.txt" && rm hakrawler.txt
 }
 
 scraping(){
@@ -58,7 +54,9 @@ scraping(){
 brute_forcing(){
     echo -e "${BOLD}${BLUE}[*]running gobuster in brute force mode...${NC}"
     > gobuster.txt
-    gobuster dns -d $1 --wordlist /home/kali/n0kovo_subdomains/n0kovo_subdomains_large.txt --wildcard -t 50 -o gobuster.txt 
+    gobuster dns -d $1 --wordlist ${HOME}/n0kovo_subdomains/n0kovo_subdomains_large.txt --wildcard -t 50 -o gobuster.txt 
     echo -e "${BOLD}${BLUE}[*]parsing results...${NC}"
     sed 's/\x1b\[[0-9;]*m//g' gobuster.txt | grep -oP '(?<=Found: ).*?\.[a-zA-Z0-9.-]+\.[a-z]{2,}' > "${3}gobuster_parsed.txt"
+    cat "${3}gobuster_parsed.txt" | anew "${3}uniqueSubdomains.txt"
+    cat "${3}uniqueSubdomains.txt" | httprobe -c 80 --prefer-https | anew "${3}actualSites.txt"
 }

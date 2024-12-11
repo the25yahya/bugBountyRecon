@@ -26,7 +26,7 @@ while getopts ":d:ljsbP" opt; do
         d)
             domain=$OPTARG
             directory="${domain}_recon"
-            output_path="/home/kali/reconFramework/${domain}_recon/"
+            output_path="${HOME}/reconFramework/${domain}_recon/"
             ;;
         l)
             linked_discovery_flag=true
